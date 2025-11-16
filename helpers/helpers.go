@@ -7,3 +7,8 @@ type F2[T, T1, R any] = func(T, T1) R
 func Identity[T any](v T) T {
 	return v
 }
+
+func GetDefault[T any]() T {
+	var t T
+	return t
+}

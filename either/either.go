@@ -22,6 +22,19 @@ func Right[L, R any](r R) Either[L, R] {
 	}
 }
 
+func Lift[L, R, T any](f h.F1[T, L]) h.F1[T, Either[L, R]] {
+	return func(t T) Either[L, R] {
+		return Left[L, R](f(t))
+	}
+}
+
+func Bind[R, T, T1 any](f h.F1[T, T1]) h.F1[Either[T, R], Either[T1, R]] {
+	return Match(
+		func(l T) Either[T1, R] { return Left[T1, R](f(l)) },
+		Right,
+	)
+}
+
 func FromPredicate[L, R any](v L, predicate h.Predicate[L], onFalse func(L) R) Either[L, R] {
 	if predicate(v) {
 		return Either[L, R]{
@@ -37,6 +50,15 @@ func FromPredicate[L, R any](v L, predicate h.Predicate[L], onFalse func(L) R) E
 
 func Match[L, R, V any](f1 func(l L) V, f2 func(r R) V) func(Either[L, R]) V {
 	return func(e Either[L, R]) V {
+		if e.isLeft {
+			return f1(e.left)
+		}
+		return f2(e.right)
+	}
+}
+
+func Match2[L, R, V, V1 any](f1 func(l L) (V, V1), f2 func(r R) (V, V1)) func(Either[L, R]) (V, V1) {
+	return func(e Either[L, R]) (V, V1) {
 		if e.isLeft {
 			return f1(e.left)
 		}
